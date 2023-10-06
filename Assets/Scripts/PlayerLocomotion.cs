@@ -38,7 +38,7 @@ public class PlayerLocomotion : MonoBehaviour
         moveDirection = moveDirection + cameraObject.right * inputManager.horizontalInput;
         moveDirection.Normalize();
         moveDirection.y = 0;
-
+        
         Vector3 movementVelocity = moveDirection;
 
         grounded = charController.isGrounded;
