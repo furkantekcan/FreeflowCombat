@@ -1,81 +1,114 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class PlayerLocomotion : MonoBehaviour
 {
     InputManager inputManager;
 
-    Transform cameraObject;
+    Camera cameraObject;
     CharacterController charController;
+    Animator animator;
 
     private Vector3 moveDirection;
+    private Vector3 moveVector;
+    private float verticalVelocity;
 
-    private bool grounded = true;
-    private Vector3 playerVelocity;
-    private float playerSpeed = 2.0f;
-    private float jumpHeight = 1.0f;
-    private float gravityValue = -9.81f;
+    [Header("Settings")]
+    [SerializeField] private bool blockPlayerRotation;
+    [SerializeField] private bool grounded;
+    [SerializeField] private float playerSpeed = 2.0f;
+    [SerializeField] private float acceleration = 1;
+    [SerializeField] private float fallSpeed = 0.2f;
+    [SerializeField] float rotationSpeed = 0.1f;
 
-    private float lerpSpeed = 15.0f;
+    public float lerpSpeed = 0.1f;
 
     private void Awake()
     {
         inputManager = GetComponent<InputManager>();
         charController = GetComponent<CharacterController>();
-        cameraObject = Camera.main.transform;
+        cameraObject = Camera.main;
+        animator = GetComponentInChildren<Animator>();
     }
 
-    public void HandleAllMovement()
+    private void HandleAllMovement()
     {
         HandleMovement();
         HandleRotation();
+        //HandleAttack();
     }
 
     private void HandleMovement()
     {
-        moveDirection = cameraObject.forward * inputManager.verticalInput;
-        moveDirection = moveDirection + cameraObject.right * inputManager.horizontalInput;
+        moveDirection = cameraObject.transform.forward * inputManager.verticalInput;
+        moveDirection = moveDirection + cameraObject.transform.right * inputManager.horizontalInput;
         moveDirection.Normalize();
         moveDirection.y = 0;
-        
-        Vector3 movementVelocity = moveDirection;
 
         grounded = charController.isGrounded;
-        if (grounded && playerVelocity.y < 0)
+        if (grounded)
         {
-            playerVelocity.y = 0;
+            verticalVelocity -= 0;
         }
+
+        else
+        {
+            verticalVelocity -= 1;
+        }
+
+        moveVector = new Vector3(0, verticalVelocity * fallSpeed * Time.deltaTime, 0);
+        charController.Move(moveVector);
 
         charController.Move(moveDirection * Time.deltaTime * playerSpeed);
-
-        if (moveDirection != Vector3.zero)
-        {
-            gameObject.transform.forward = moveDirection;
-        }
-
-        // Changes the height position of the player..
-        if (Input.GetButtonDown("Jump") && grounded)
-        {
-            playerVelocity.y += Mathf.Sqrt(jumpHeight * -3.0f * gravityValue);
-        }
-
-        playerVelocity.y += gravityValue * Time.deltaTime;
-        charController.Move(playerVelocity * Time.deltaTime);
     }
 
     private void HandleRotation()
     {
-        Vector3 targetDirection = Vector3.zero;
-
-        targetDirection = cameraObject.forward * inputManager.verticalInput;
-        targetDirection = targetDirection + cameraObject.right * inputManager.horizontalInput;
-        targetDirection.Normalize();
-        targetDirection.y = 0;
-
-        Quaternion targetRotation = Quaternion.LookRotation(targetDirection);
-        Quaternion playerRotation = Quaternion.Slerp(transform.rotation, targetRotation, lerpSpeed * Time.deltaTime);
-
-        transform.rotation = playerRotation;
+        if (blockPlayerRotation == false)
+		{
+			transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(moveDirection), rotationSpeed * acceleration);
+			charController.Move(moveDirection * Time.deltaTime * (playerSpeed * acceleration));
+		}
+		else
+		{
+			charController.Move((transform.forward * inputManager.verticalInput + transform.right * inputManager.verticalInput) * Time.deltaTime * (playerSpeed * acceleration));
+		}
     }
+
+    public void LookAt(Vector3 position)
+    {
+        transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(position), rotationSpeed);
+    }
+
+    public void RotateToCamera(Transform objT)
+    {
+        moveDirection = cameraObject.transform.forward;
+        Quaternion lookAtRotation = Quaternion.LookRotation(moveDirection);
+        Quaternion lookAtRotationY = Quaternion.Euler(transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y, transform.eulerAngles.z);
+        objT.rotation = Quaternion.Slerp(transform.rotation, lookAtRotationY, rotationSpeed);        
+    }
+
+    public void InputMagnitude()
+    {
+        float inputMagnitude = new Vector2(inputManager.horizontalInput, inputManager.verticalInput).sqrMagnitude;
+
+        if (inputMagnitude > 0.1f)
+        {
+            HandleAllMovement();
+            animator.SetFloat("InputMagnitude", inputMagnitude * acceleration, .1f, Time.deltaTime);
+
+        }
+
+        else
+        {
+            animator.SetFloat("InputMagnitude", inputMagnitude * acceleration, .1f, Time.deltaTime);
+        }
+    }
+
+	private void OnDisable()
+	{
+		animator.SetFloat("InputMagnitude", 0);
+	}
 }
