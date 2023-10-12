@@ -8,7 +8,7 @@ public class EnemyDetection : MonoBehaviour
 
     public LayerMask layerMask;
 
-    [SerializeField] Vector3 inputDirection;
+    [HideInInspector] public Vector3 inputDirection;
 
     [SerializeField] public GameObject currentTarget;
 
