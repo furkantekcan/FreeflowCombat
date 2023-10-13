@@ -8,7 +8,7 @@ public class CombatScript : MonoBehaviour
 {
     private EnemyManager enemyManager;
     private EnemyDetection enemyDetection;
-    private MovementInput movementInput;
+    private PlayerLocomotion movementInput;
     private Animator animator;
     private CinemachineImpulseSource impulseSource;
 
@@ -21,6 +21,7 @@ public class CombatScript : MonoBehaviour
     [Header("States")]
     public bool isAttackingEnemy = false;
     public bool isCountering = false;
+    public bool isAttackDone = true;
 
     [Header("Public References")]
     [SerializeField] private Transform punchPosition;
@@ -40,15 +41,33 @@ public class CombatScript : MonoBehaviour
     public UnityEvent<EnemyController> OnHit;
     public UnityEvent<EnemyController> OnCounterAttack;
 
+    public UnityEvent OnAttackInput;
+    public UnityEvent OnCounterInput;
+
     int animationCount = 0;
     string[] attacks;
+
+    private void Awake()
+    {
+        if (OnAttackInput == null)
+        {
+            OnAttackInput = new UnityEvent();
+        }
+        if (OnCounterInput == null)
+        {
+            OnCounterInput = new UnityEvent();
+        }
+
+        OnAttackInput.AddListener(OnAttack);
+        OnCounterInput.AddListener(OnCounter);      
+    }
 
     void Start()
     {
         enemyManager = FindObjectOfType<EnemyManager>();
-        animator = GetComponent<Animator>();
-        enemyDetection = GetComponentInChildren<EnemyDetection>();
-        movementInput = GetComponent<MovementInput>();
+        animator = GetComponentInChildren<Animator>();
+        enemyDetection = GetComponent<EnemyDetection>();
+        movementInput = GetComponent<PlayerLocomotion>();
         impulseSource = GetComponentInChildren<CinemachineImpulseSource>();
     }
 
@@ -135,11 +154,11 @@ public class CombatScript : MonoBehaviour
         {
             movementInput.acceleration = 0;
             isAttackingEnemy = true;
-            movementInput.enabled = false;
+            //movementInput.enabled = false;
             yield return new WaitForSeconds(duration);
             isAttackingEnemy = false;
             yield return new WaitForSeconds(.2f);
-            movementInput.enabled = true;
+            //movementInput.enabled = true;
             LerpCharacterAcceleration();
         }
 
@@ -188,7 +207,7 @@ public class CombatScript : MonoBehaviour
         IEnumerator CounterCoroutine(float duration)
         {
             isCountering = true;
-            movementInput.enabled = false;
+            //movementInput.enabled = false;
             yield return new WaitForSeconds(duration);
             Attack(lockedTarget, TargetDistance(lockedTarget));
             isCountering = false;
@@ -229,9 +248,9 @@ public class CombatScript : MonoBehaviour
 
         IEnumerator DamageCoroutine()
         {
-            movementInput.enabled = false;
+            //movementInput.enabled = false;
             yield return new WaitForSeconds(.5f);
-            movementInput.enabled = true;
+            //movementInput.enabled = true;
             LerpCharacterAcceleration();
         }
     }

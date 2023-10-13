@@ -19,7 +19,7 @@ public class PlayerLocomotion : MonoBehaviour
     [SerializeField] private bool blockPlayerRotation;
     [SerializeField] private bool grounded;
     [SerializeField] private float playerSpeed = 2.0f;
-    [SerializeField] private float acceleration = 1;
+    [SerializeField] public float acceleration = 1;
     [SerializeField] private float fallSpeed = 0.2f;
     [SerializeField] float rotationSpeed = 0.1f;
 

@@ -39,7 +39,7 @@ public class EnemyDetection : MonoBehaviour
         {
             if (info.collider.gameObject.layer == 6)
             {
-                Debug.Log("ENEMY");
+                //Debug.Log("ENEMY");
                 currentTarget = info.collider.gameObject;
                // OnDrawGizmos();
             }

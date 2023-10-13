@@ -6,11 +6,13 @@ public class PlayerManager : MonoBehaviour
 {
     InputManager inputManager;
     PlayerLocomotion playerLocomotion;
+    CombatScript playerCombat;
 
     private void Awake()
     {
         inputManager = GetComponent<InputManager>();
         playerLocomotion = GetComponent<PlayerLocomotion>();
+        playerCombat = GetComponent<CombatScript>();
     }
 
     private void Update()
@@ -20,6 +22,11 @@ public class PlayerManager : MonoBehaviour
 
     private void FixedUpdate()
     {
-        playerLocomotion.InputMagnitude();
+        if (playerCombat.isAttackDone)
+        {
+            playerLocomotion.InputMagnitude();
+        }
+
+        
     }
 }

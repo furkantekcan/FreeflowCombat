@@ -239,10 +239,10 @@ public class EnemyController : MonoBehaviour
             finalDirection = -transform.forward;
 
         if (direction == Vector3.right || direction == Vector3.left)
-            moveSpeed /= 1.5f;
+            moveSpeed *= 3f;
 
         movedir += finalDirection * moveSpeed * Time.deltaTime;
-
+        movedir.y = 0;
         characterController.Move(movedir);
 
         if (!isPreparingAttack)
